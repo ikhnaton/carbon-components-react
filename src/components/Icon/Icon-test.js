@@ -1,3 +1,10 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import React from 'react';
 import { iconSearch } from 'carbon-icons';
 import Icon, { findIcon, svgShapes, getSvgData, isPrefixed } from '../Icon';
@@ -11,6 +18,7 @@ describe('Icon', () => {
       width: '20',
       height: '20',
       description: 'close the thing',
+      iconTitle: 'title',
       style: {
         transition: '2s',
       },
@@ -20,6 +28,10 @@ describe('Icon', () => {
 
     it('Renders `description` as expected', () => {
       expect(wrapper.props().description).toEqual('close the thing');
+    });
+
+    it('Renders `title` as expected', () => {
+      expect(wrapper.props().iconTitle).toEqual('title');
     });
 
     it('should have a default role prop', () => {
@@ -44,29 +56,6 @@ describe('Icon', () => {
 
     it('should recieve style props', () => {
       expect(wrapper.props().style).toEqual({ transition: '2s' });
-    });
-  });
-
-  describe('Supports legacy icon', () => {
-    const props = {
-      className: 'extra-class',
-      name: 'search--glyph',
-      width: '20',
-      height: '20',
-      description: 'close the thing',
-      style: {
-        transition: '2s',
-      },
-    };
-
-    const wrapper = mount(<Icon {...props} />);
-
-    it('Renders `description` as expected', () => {
-      expect(wrapper.props().description).toEqual('close the thing');
-    });
-
-    it('should have expected viewBox on <svg>', () => {
-      expect(wrapper.find('svg').props().viewBox).not.toEqual('');
     });
   });
 

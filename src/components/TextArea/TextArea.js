@@ -1,20 +1,34 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import PropTypes from 'prop-types';
 import React from 'react';
 import classNames from 'classnames';
+import { settings } from 'carbon-components';
+import WarningFilled16 from '@carbon/icons-react/lib/warning--filled/16';
 
-const TextArea = ({
-  className,
-  id,
-  labelText,
-  hideLabel,
-  onChange,
-  onClick,
-  invalid,
-  invalidText,
-  helperText,
-  light,
-  ...other
-}) => {
+const { prefix } = settings;
+
+const TextArea = React.forwardRef(function TextArea(
+  {
+    className,
+    id,
+    labelText,
+    hideLabel,
+    onChange,
+    onClick,
+    invalid,
+    invalidText,
+    helperText,
+    light,
+    ...other
+  },
+  ref
+) {
   const textareaProps = {
     id,
     onChange: evt => {
@@ -27,13 +41,12 @@ const TextArea = ({
         onClick(evt);
       }
     },
+    ref,
   };
 
-  const textareaClasses = classNames('bx--text-area', className, {
-    'bx--text-area--light': light,
-  });
-  const labelClasses = classNames('bx--label', {
-    'bx--visually-hidden': hideLabel,
+  const labelClasses = classNames(`${prefix}--label`, {
+    [`${prefix}--visually-hidden`]: hideLabel,
+    [`${prefix}--label--disabled`]: other.disabled,
   });
 
   const label = labelText ? (
@@ -42,35 +55,56 @@ const TextArea = ({
     </label>
   ) : null;
 
-  const error = invalid ? (
-    <div className="bx--form-requirement">{invalidText}</div>
+  const helperTextClasses = classNames(`${prefix}--form__helper-text`, {
+    [`${prefix}--form__helper-text--disabled`]: other.disabled,
+  });
+
+  const helper = helperText ? (
+    <div className={helperTextClasses}>{helperText}</div>
   ) : null;
 
-  const input = invalid ? (
+  const errorId = id + '-error-msg';
+
+  const error = invalid ? (
+    <div className={`${prefix}--form-requirement`} id={errorId}>
+      {invalidText}
+    </div>
+  ) : null;
+
+  const textareaClasses = classNames(`${prefix}--text-area`, className, {
+    [`${prefix}--text-area--light`]: light,
+    [`${prefix}--text-area--invalid`]: invalid,
+  });
+
+  const input = (
     <textarea
       {...other}
       {...textareaProps}
       className={textareaClasses}
-      data-invalid
+      aria-invalid={invalid || null}
+      aria-describedby={invalid ? errorId : null}
+      disabled={other.disabled}
     />
-  ) : (
-    <textarea {...other} {...textareaProps} className={textareaClasses} />
   );
 
-  const helper = helperText ? (
-    <div className="bx--form__helper-text">{helperText}</div>
-  ) : null;
-
   return (
-    <div className="bx--form-item">
+    <div className={`${prefix}--form-item`}>
       {label}
-      {input}
       {helper}
+      <div
+        className={`${prefix}--text-area__wrapper`}
+        data-invalid={invalid || null}>
+        {invalid && (
+          <WarningFilled16 className={`${prefix}--text-area__invalid-icon`} />
+        )}
+        {input}
+      </div>
       {error}
     </div>
   );
-};
+});
 
+TextArea.displayName = 'TextArea';
 TextArea.propTypes = {
   /**
    * Provide a custom className that is applied directly to the underlying

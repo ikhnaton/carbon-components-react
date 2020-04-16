@@ -1,8 +1,19 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import cx from 'classnames';
 import Downshift from 'downshift';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { settings } from 'carbon-components';
+import WarningFilled16 from '@carbon/icons-react/lib/warning--filled/16';
 import ListBox, { PropTypes as ListBoxPropTypes } from '../ListBox';
+
+const { prefix } = settings;
 
 const defaultItemToString = item => {
   if (typeof item === 'string') {
@@ -12,11 +23,7 @@ const defaultItemToString = item => {
   return item && item.label;
 };
 
-const defaultShouldFilterItem = ({ inputValue, item, itemToString }) =>
-  !inputValue ||
-  itemToString(item)
-    .toLowerCase()
-    .includes(inputValue.toLowerCase());
+const defaultShouldFilterItem = () => true;
 
 const getInputValue = (props, state) => {
   if (props.initialSelectedItem) {
@@ -26,8 +33,30 @@ const getInputValue = (props, state) => {
   return state.inputValue || '';
 };
 
+const findHighlightedIndex = ({ items, itemToString }, inputValue) => {
+  if (!inputValue) {
+    return -1;
+  }
+
+  const searchValue = inputValue.toLowerCase();
+
+  for (let i = 0; i < items.length; i++) {
+    const item = itemToString(items[i]).toLowerCase();
+    if (item.indexOf(searchValue) !== -1) {
+      return i;
+    }
+  }
+
+  return -1;
+};
+
 export default class ComboBox extends React.Component {
   static propTypes = {
+    /**
+     * 'aria-label' of the ListBox component.
+     */
+    ariaLabel: PropTypes.string,
+
     /**
      * An optional className to add to the container node
      */
@@ -41,7 +70,7 @@ export default class ComboBox extends React.Component {
     /**
      * Specify a custom `id` for the input
      */
-    id: PropTypes.string,
+    id: PropTypes.string.isRequired,
 
     /**
      * Allow users to pass in an arbitrary item or a string (in case their items are an array of strings)
@@ -124,12 +153,15 @@ export default class ComboBox extends React.Component {
     itemToString: defaultItemToString,
     shouldFilterItem: defaultShouldFilterItem,
     type: 'default',
-    ariaLabel: 'ListBox input field',
+    ariaLabel: 'Choose an item',
     light: false,
   };
 
   constructor(props) {
     super(props);
+
+    this.textInput = React.createRef();
+
     this.state = {
       inputValue: getInputValue(props, {}),
     };
@@ -160,8 +192,11 @@ export default class ComboBox extends React.Component {
     event.stopPropagation();
   };
 
-  handleOnInputValueChange = inputValue => {
+  handleOnInputValueChange = (inputValue, { setHighlightedIndex }) => {
     const { onInputChange } = this.props;
+
+    setHighlightedIndex(findHighlightedIndex(this.props, inputValue));
+
     this.setState(
       () => ({
         // Default to empty string if we have a false-y `inputValue`
@@ -175,6 +210,13 @@ export default class ComboBox extends React.Component {
     );
   };
 
+  onToggleClick = isOpen => event => {
+    if (event.target === this.textInput.current && isOpen) {
+      event.preventDownshiftDefault = true;
+      event.persist();
+    }
+  };
+
   render() {
     const {
       className: containerClassName,
@@ -182,6 +224,8 @@ export default class ComboBox extends React.Component {
       id,
       items,
       itemToString,
+      titleText,
+      helperText,
       placeholder,
       initialSelectedItem,
       ariaLabel,
@@ -189,10 +233,29 @@ export default class ComboBox extends React.Component {
       invalid,
       invalidText,
       light,
+      type, // eslint-disable-line no-unused-vars
+      shouldFilterItem, // eslint-disable-line no-unused-vars
+      onChange, // eslint-disable-line no-unused-vars
+      onInputChange, // eslint-disable-line no-unused-vars
+      ...rest
     } = this.props;
-    const className = cx('bx--combo-box', containerClassName);
-
-    return (
+    const className = cx(`${prefix}--combo-box`, containerClassName);
+    const titleClasses = cx(`${prefix}--label`, {
+      [`${prefix}--label--disabled`]: disabled,
+    });
+    const title = titleText ? (
+      <label htmlFor={id} className={titleClasses}>
+        {titleText}
+      </label>
+    ) : null;
+    const helperClasses = cx(`${prefix}--form__helper-text`, {
+      [`${prefix}--form__helper-text--disabled`]: disabled,
+    });
+    const helper = helperText ? (
+      <div className={helperClasses}>{helperText}</div>
+    ) : null;
+    const wrapperClasses = cx(`${prefix}--list-box__wrapper`);
+    const input = (
       <Downshift
         onChange={this.handleOnChange}
         onInputValueChange={this.handleOnInputValueChange}
@@ -215,12 +278,27 @@ export default class ComboBox extends React.Component {
             disabled={disabled}
             invalid={invalid}
             invalidText={invalidText}
+            isOpen={isOpen}
             light={light}
             {...getRootProps({ refKey: 'innerRef' })}>
-            <ListBox.Field {...getButtonProps({ disabled })}>
+            <ListBox.Field
+              id={id}
+              {...getButtonProps({
+                disabled,
+                onClick: this.onToggleClick(isOpen),
+              })}>
+              {invalid && (
+                <WarningFilled16
+                  className={`${prefix}--list-box__invalid-icon`}
+                />
+              )}
               <input
-                className="bx--text-input"
+                className={`${prefix}--text-input`}
                 aria-label={ariaLabel}
+                aria-controls={`${id}__menu`}
+                aria-autocomplete="list"
+                ref={this.textInput}
+                {...rest}
                 {...getInputProps({
                   disabled,
                   id,
@@ -228,26 +306,29 @@ export default class ComboBox extends React.Component {
                   onKeyDown: this.handleOnInputKeyDown,
                 })}
               />
-              {inputValue &&
-                isOpen && (
-                  <ListBox.Selection
-                    clearSelection={clearSelection}
-                    translateWithId={translateWithId}
-                  />
-                )}
+              {inputValue && (
+                <ListBox.Selection
+                  clearSelection={clearSelection}
+                  translateWithId={translateWithId}
+                />
+              )}
               <ListBox.MenuIcon
                 isOpen={isOpen}
                 translateWithId={translateWithId}
               />
             </ListBox.Field>
             {isOpen && (
-              <ListBox.Menu>
+              <ListBox.Menu aria-label={ariaLabel} id={id}>
                 {this.filterItems(items, itemToString, inputValue).map(
                   (item, index) => (
                     <ListBox.MenuItem
                       key={itemToString(item)}
                       isActive={selectedItem === item}
-                      isHighlighted={highlightedIndex === index}
+                      isHighlighted={
+                        highlightedIndex === index ||
+                        (selectedItem && selectedItem.id === item.id) ||
+                        false
+                      }
                       {...getItemProps({ item, index })}>
                       {itemToString(item)}
                     </ListBox.MenuItem>
@@ -258,6 +339,14 @@ export default class ComboBox extends React.Component {
           </ListBox>
         )}
       </Downshift>
+    );
+
+    return (
+      <div className={wrapperClasses}>
+        {title}
+        {helper}
+        {input}
+      </div>
     );
   }
 }

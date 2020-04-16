@@ -1,28 +1,16 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 import { action } from '@storybook/addon-actions';
-import { withInfo } from '@storybook/addon-info';
-import { withKnobs, select, text } from '@storybook/addon-knobs';
-import { iconAddSolid, iconSearch } from 'carbon-icons';
-import Icon from '../Icon';
+import { withKnobs, boolean } from '@storybook/addon-knobs';
 import ContentSwitcher from '../ContentSwitcher';
 import Switch from '../Switch';
-
-const icons = {
-  none: 'None',
-  iconAddSolid: 'Add with filled circle (iconAddSolid from `carbon-icons`)',
-  iconSearch: 'Search (iconSearch from `carbon-icons`)',
-};
-
-const iconMap = {
-  iconAddSolid: <Icon icon={iconAddSolid} />,
-  iconSearch: <Icon icon={iconSearch} />,
-};
-
-const kinds = {
-  anchor: 'Anchor (anchor)',
-  button: 'Button (button)',
-};
 
 const props = {
   contentSwitcher: () => ({
@@ -30,9 +18,7 @@ const props = {
   }),
   switch: () => ({
     onClick: action('onClick - Switch'),
-    kind: select('Butto kind (kind in <Switch>)', kinds, 'anchor'),
-    href: text('The link href (href in <Switch>)', ''),
-    icon: iconMap[select('Icon (icon in <Switch>)', icons, 'none')],
+    disabled: boolean('Disabled (disabled)', false),
   }),
 };
 
@@ -40,12 +26,7 @@ storiesOf('ContentSwitcher', module)
   .addDecorator(withKnobs)
   .add(
     'Default',
-    withInfo({
-      text: `
-        The Content Switcher component manipulates the content shown following an exclusive or “either/or” pattern.
-        Create Switch components for each section in the content switcher.
-      `,
-    })(() => {
+    () => {
       const switchProps = props.switch();
       return (
         <ContentSwitcher {...props.contentSwitcher()}>
@@ -54,15 +35,19 @@ storiesOf('ContentSwitcher', module)
           <Switch name="three" text="Third section" {...switchProps} />
         </ContentSwitcher>
       );
-    })
+    },
+    {
+      info: {
+        text: `
+            The Content Switcher component manipulates the content shown following an exclusive or “either/or” pattern.
+            Create Switch components for each section in the content switcher.
+          `,
+      },
+    }
   )
   .add(
     'Selected',
-    withInfo({
-      text: `
-         Render the Content Switcher with a different section automatically selected
-       `,
-    })(() => {
+    () => {
       const switchProps = props.switch();
       return (
         <ContentSwitcher {...props.contentSwitcher()} selectedIndex={1}>
@@ -71,5 +56,12 @@ storiesOf('ContentSwitcher', module)
           <Switch name="three" text="Third section" {...switchProps} />
         </ContentSwitcher>
       );
-    })
+    },
+    {
+      info: {
+        text: `
+             Render the Content Switcher with a different section automatically selected
+           `,
+      },
+    }
   );

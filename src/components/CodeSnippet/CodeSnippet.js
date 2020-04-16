@@ -1,9 +1,20 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import classNames from 'classnames';
+import ChevronDown16 from '@carbon/icons-react/lib/chevron--down/16';
+import { settings } from 'carbon-components';
 import Copy from '../Copy';
 import CopyButton from '../CopyButton';
-import Icon from '../Icon';
+import uid from '../../tools/uniqueId';
+
+const { prefix } = settings;
 
 export default class CodeSnippet extends Component {
   static propTypes = {
@@ -28,11 +39,6 @@ export default class CodeSnippet extends Component {
     feedback: PropTypes.string,
 
     /**
-     * Specify the label used for the Copy Button
-     */
-    copyLabel: PropTypes.string,
-
-    /**
      * Specify the description for the Copy Button
      */
     copyButtonDescription: PropTypes.string,
@@ -42,6 +48,12 @@ export default class CodeSnippet extends Component {
      * Button
      */
     onClick: PropTypes.func,
+
+    /**
+     * Specify a label to be read by screen readers on the containing <textbox>
+     * node
+     */
+    copyLabel: PropTypes.string,
 
     /**
      * Specify a label to be read by screen readers on the containing <textbox>
@@ -107,7 +119,7 @@ export default class CodeSnippet extends Component {
       feedback,
       onClick,
       ariaLabel,
-      copyLabel,
+      copyLabel, //TODO: Merge this prop to `ariaLabel` in `v11`
       copyButtonDescription,
       light,
       showMoreText,
@@ -115,13 +127,16 @@ export default class CodeSnippet extends Component {
       ...other
     } = this.props;
 
+    // a unique id generated for aria-describedby
+    this.uid = uid();
+
     const codeSnippetClasses = classNames(className, {
-      'bx--snippet': true,
-      'bx--snippet--single': type === 'single',
-      'bx--snippet--multi': type === 'multi',
-      'bx--snippet--inline': type === 'inline',
-      'bx--snippet--expand': this.state.expandedCode,
-      'bx--snippet--light': light,
+      [`${prefix}--snippet`]: true,
+      [`${prefix}--snippet--single`]: type === 'single',
+      [`${prefix}--snippet--multi`]: type === 'multi',
+      [`${prefix}--snippet--inline`]: type === 'inline',
+      [`${prefix}--snippet--expand`]: this.state.expandedCode,
+      [`${prefix}--snippet--light`]: light,
     });
 
     const expandCodeBtnText = this.state.expandedCode
@@ -130,16 +145,17 @@ export default class CodeSnippet extends Component {
 
     const moreLessBtn = (
       <button
-        className="bx--btn bx--btn--ghost bx--btn--sm bx--snippet-btn--expand"
+        className={`${prefix}--btn ${prefix}--btn--ghost ${prefix}--btn--sm ${prefix}--snippet-btn--expand`}
         type="button"
         onClick={this.expandCode}>
-        <span className="bx--snippet-btn--text">{expandCodeBtnText}</span>
-        <Icon
-          aria-hidden="true"
-          alt={expandCodeBtnText}
+        <span className={`${prefix}--snippet-btn--text`}>
+          {expandCodeBtnText}
+        </span>
+        <ChevronDown16
+          aria-label={expandCodeBtnText}
+          className={`${prefix}--icon-chevron--down ${prefix}--snippet__icon`}
           name="chevron--down"
-          description={expandCodeBtnText}
-          className="bx--icon-chevron--down"
+          role="img"
         />
       </button>
     );
@@ -148,8 +164,8 @@ export default class CodeSnippet extends Component {
       <div
         role="textbox"
         tabIndex={0}
-        className="bx--snippet-container"
-        aria-label={ariaLabel ? ariaLabel : 'code-snippet'}>
+        className={`${prefix}--snippet-container`}
+        aria-label={ariaLabel || copyLabel || 'code-snippet'}>
         <code>
           <pre
             ref={codeContent => {
@@ -172,10 +188,13 @@ export default class CodeSnippet extends Component {
     if (type === 'inline') {
       return (
         <Copy
+          {...other}
+          onClick={onClick}
+          aria-label={copyLabel || ariaLabel}
+          aria-describedby={this.uid}
           className={codeSnippetClasses}
-          aria-label={copyLabel}
           feedback={feedback}>
-          <code>{children}</code>
+          <code id={this.uid}>{children}</code>
         </Copy>
       );
     }

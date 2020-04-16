@@ -1,8 +1,17 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import classnames from 'classnames';
-import { iconCopy } from 'carbon-icons';
-import Icon from '../Icon';
+import { settings } from 'carbon-components';
+import Copy16 from '@carbon/icons-react/lib/copy/16';
+
+const { prefix } = settings;
 
 export default class CopyButton extends Component {
   static propTypes = {
@@ -72,9 +81,9 @@ export default class CopyButton extends Component {
       onClick, // eslint-disable-line no-unused-vars
       ...other
     } = this.props;
-    const classNames = classnames('bx--snippet-button', className);
-    const feedbackClassNames = classnames('bx--btn--copy__feedback', {
-      'bx--btn--copy__feedback--displayed': this.state.showFeedback,
+    const classNames = classnames(`${prefix}--snippet-button`, className);
+    const feedbackClassNames = classnames(`${prefix}--btn--copy__feedback`, {
+      [`${prefix}--btn--copy__feedback--displayed`]: this.state.showFeedback,
     });
 
     return (
@@ -82,11 +91,11 @@ export default class CopyButton extends Component {
         type="button"
         className={classNames}
         onClick={this.handleClick}
+        title={iconDescription}
         {...other}>
-        <Icon
-          className="bx--snippet__icon"
-          icon={iconCopy}
-          description={iconDescription}
+        <Copy16
+          className={`${prefix}--snippet__icon`}
+          aria-label={iconDescription}
         />
         <div className={feedbackClassNames} data-feedback={feedback} />
       </button>

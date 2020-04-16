@@ -1,7 +1,14 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 import { action } from '@storybook/addon-actions';
-import { withInfo } from '@storybook/addon-info';
+
 import {
   withKnobs,
   array,
@@ -10,7 +17,6 @@ import {
   text,
 } from '@storybook/addon-knobs';
 import Pagination from '../Pagination';
-import PaginationV2 from '../PaginationV2';
 
 const props = () => ({
   disabled: boolean('Disable backward/forward buttons (disabled)', false),
@@ -18,14 +24,13 @@ const props = () => ({
   totalItems: number('Total number of items (totalItems)', 103),
   pagesUnknown: boolean('Total number of items unknown (pagesUnknown)', false),
   pageInputDisabled: boolean('Disable page input (pageInputDisabled)', false),
-  isLastPage: boolean('At the last page (isLastPage)', false),
   backwardText: text(
     'The description for the backward icon (backwardText)',
-    'Backward'
+    'Previous page'
   ),
   forwardText: text(
     'The description for the backward icon (forwardText)',
-    'Forward'
+    'Next page'
   ),
   pageSize: number('Number of items per page (pageSize)', 10),
   pageSizes: array('Choices of `pageSize` (pageSizes)', [10, 20, 30, 40, 50]),
@@ -39,32 +44,26 @@ const props = () => ({
 storiesOf('Pagination', module)
   .addDecorator(withKnobs)
   .addDecorator(story => <div style={{ width: '800px' }}>{story()}</div>)
-  .add(
-    'v2',
-    withInfo({
+  .add('Pagination', () => <Pagination {...props()} />, {
+    info: {
       text: `
-        V2 version of the Pagination
-      `,
-    })(() => <PaginationV2 {...props()} />)
-  )
+            The pagination component is used to switch through multiple pages of items, when only a maxium number of items can be displayed per page. Can be used in combination with other components like DataTable.
+          `,
+    },
+  })
   .add(
-    'v1',
-    withInfo({
-      text: `
-        The pagination component is used to paginate through items.
-      `,
-    })(() => <Pagination {...props()} />)
-  )
-  .add(
-    'multipe pagination components',
-    withInfo({
-      text: `Showcasing unique ids for each pagination component`,
-    })(() => {
+    '↪︎ multiple Pagination components',
+    () => {
       return (
         <div>
           <Pagination {...props()} />
           <Pagination {...props()} />
         </div>
       );
-    })
+    },
+    {
+      info: {
+        text: `Showcasing unique ids for each pagination component`,
+      },
+    }
   );

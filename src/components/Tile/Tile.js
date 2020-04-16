@@ -1,20 +1,38 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import { iconCheckmarkSolid, iconChevronDown } from 'carbon-icons';
-import Icon from '../Icon';
+import { settings } from 'carbon-components';
+import CheckmarkFilled from '@carbon/icons-react/lib/checkmark--filled/16';
+import ChevronDown16 from '@carbon/icons-react/lib/chevron--down/16';
+import { keys, matches } from '../../tools/key';
+import uid from '../../tools/uniqueId';
+
+const { prefix } = settings;
 
 export class Tile extends Component {
   static propTypes = {
+    /**
+     * The child nodes.
+     */
     children: PropTypes.node,
+
+    /**
+     * The CSS class names.
+     */
     className: PropTypes.string,
   };
 
   render() {
     const { children, className, ...other } = this.props;
-    const tileClasses = classNames('bx--tile', className);
-
+    const tileClasses = classNames(`${prefix}--tile`, className);
     return (
       <div className={tileClasses} {...other}>
         {children}
@@ -66,7 +84,7 @@ export class ClickableTile extends Component {
   };
 
   handleKeyDown = evt => {
-    if (evt.which === 13 || evt.which === 32) {
+    if (matches(evt, [keys.ENTER, keys.SPACE])) {
       this.setState(
         {
           clicked: !this.state.clicked,
@@ -102,10 +120,10 @@ export class ClickableTile extends Component {
     } = this.props;
 
     const classes = classNames(
-      'bx--tile',
-      'bx--tile--clickable',
+      `${prefix}--tile`,
+      `${prefix}--tile--clickable`,
       {
-        'bx--tile--is-clicked': this.state.clicked,
+        [`${prefix}--tile--is-clicked`]: this.state.clicked,
       },
       className
     );
@@ -168,6 +186,11 @@ export class SelectableTile extends Component {
      * The description of the checkmark icon.
      */
     iconDescription: PropTypes.string,
+
+    /**
+     * Specify the tab index of the wrapper element
+     */
+    tabIndex: PropTypes.number,
   };
 
   static defaultProps = {
@@ -177,6 +200,7 @@ export class SelectableTile extends Component {
     selected: false,
     handleClick: () => {},
     handleKeyDown: () => {},
+    tabIndex: 0,
   };
 
   handleClick = evt => {
@@ -197,8 +221,8 @@ export class SelectableTile extends Component {
   };
 
   handleKeyDown = evt => {
-    evt.preventDefault();
-    if (evt.which === 13 || evt.which === 32) {
+    if (matches(evt, [keys.ENTER, keys.SPACE])) {
+      evt.preventDefault();
       this.setState(
         {
           selected: !this.state.selected,
@@ -237,35 +261,45 @@ export class SelectableTile extends Component {
       ...other
     } = this.props;
 
-    const classes = classNames('bx--tile', 'bx--tile--selectable', className);
+    const classes = classNames(
+      `${prefix}--tile`,
+      `${prefix}--tile--selectable`,
+      {
+        [`${prefix}--tile--is-selected`]: this.state.selected,
+      },
+      className
+    );
 
     return (
-      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-      <label
-        htmlFor={id}
-        className={classes}
-        tabIndex={tabIndex}
-        {...other}
-        onClick={this.handleClick}
-        onKeyDown={this.handleKeyDown}>
+      <>
         <input
           ref={input => {
             this.input = input;
           }}
           tabIndex={-1}
           id={id}
-          className="bx--tile-input"
+          className={`${prefix}--tile-input`}
           value={value}
           type="checkbox"
           name={name}
           title={title}
           checked={this.state.selected}
         />
-        <div className="bx--tile__checkmark">
-          <Icon icon={iconCheckmarkSolid} description={iconDescription} />
-        </div>
-        <div className="bx--tile-content">{children}</div>
-      </label>
+        <label
+          htmlFor={id}
+          className={classes}
+          tabIndex={tabIndex}
+          {...other}
+          onClick={this.handleClick}
+          onKeyDown={this.handleKeyDown}>
+          <div className={`${prefix}--tile__checkmark`}>
+            <CheckmarkFilled aria-label={iconDescription}>
+              {iconDescription && <title>{iconDescription}</title>}
+            </CheckmarkFilled>
+          </div>
+          <div className={`${prefix}--tile-content`}>{children}</div>
+        </label>
+      </>
     );
   }
 }
@@ -274,12 +308,40 @@ export class ExpandableTile extends Component {
   state = {};
 
   static propTypes = {
+    /**
+     * The child nodes.
+     */
     children: PropTypes.node,
+
+    /**
+     * The CSS class names.
+     */
     className: PropTypes.string,
+
+    /**
+     * `true` if the tile is expanded.
+     */
     expanded: PropTypes.bool,
+
+    /**
+     * The `tabindex` attribute.
+     */
     tabIndex: PropTypes.number,
+
+    /**
+     * The description of the "collapsed" icon that can be read by screen readers.
+     */
     tileCollapsedIconText: PropTypes.string,
+
+    /**
+     * The description of the "expanded" icon that can be read by screen readers.
+     */
     tileExpandedIconText: PropTypes.string,
+
+    /**
+     * An ID that can be provided to aria-labelledby
+     */
+    id: PropTypes.string,
   };
 
   static defaultProps = {
@@ -360,6 +422,9 @@ export class ExpandableTile extends Component {
     return React.Children.map(this.props.children, child => child);
   };
 
+  // a unique ID generated for use in aria-labelledby if one isn't providedj
+  uid = uid();
+
   render() {
     const {
       tabIndex,
@@ -374,20 +439,23 @@ export class ExpandableTile extends Component {
     } = this.props;
 
     const classes = classNames(
-      'bx--tile',
-      'bx--tile--expandable',
+      `${prefix}--tile`,
+      `${prefix}--tile--expandable`,
       {
-        'bx--tile--is-expanded': this.state.expanded,
+        [`${prefix}--tile--is-expanded`]: this.state.expanded,
       },
       className
     );
 
     const tileStyle = {
-      maxHeight: this.state.tileMaxHeight + this.state.tilePadding,
+      maxHeight: this.state.expanded
+        ? null
+        : this.state.tileMaxHeight + this.state.tilePadding,
     };
     const content = this.getChildren().map((child, index) => {
       return React.cloneElement(child, { ref: index });
     });
+    const buttonId = this.props.id ? `${this.props.id}__button` : this.uid;
     return (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
       <div
@@ -397,12 +465,19 @@ export class ExpandableTile extends Component {
         style={tileStyle}
         className={classes}
         {...other}
-        role="button"
         onClick={this.handleClick}
         tabIndex={tabIndex}>
-        <button className="bx--tile__chevron">
-          <Icon
-            icon={iconChevronDown}
+        <button
+          className={`${prefix}--tile__chevron`}
+          aria-labelledby={buttonId}>
+          <ChevronDown16
+            id={buttonId}
+            aria-label={
+              this.state.expanded ? tileExpandedIconText : tileCollapsedIconText
+            }
+            alt={
+              this.state.expanded ? tileExpandedIconText : tileCollapsedIconText
+            }
             description={
               this.state.expanded ? tileExpandedIconText : tileCollapsedIconText
             }
@@ -412,7 +487,7 @@ export class ExpandableTile extends Component {
           ref={tileContent => {
             this.tileContent = tileContent;
           }}
-          className="bx--tile-content">
+          className={`${prefix}--tile-content`}>
           {content}
         </div>
       </div>
@@ -422,24 +497,38 @@ export class ExpandableTile extends Component {
 
 export class TileAboveTheFoldContent extends Component {
   static propTypes = {
+    /**
+     * The child nodes.
+     */
     children: PropTypes.node,
   };
 
   render() {
     const { children } = this.props;
 
-    return <span className="bx--tile-content__above-the-fold">{children}</span>;
+    return (
+      <span className={`${prefix}--tile-content__above-the-fold`}>
+        {children}
+      </span>
+    );
   }
 }
 
 export class TileBelowTheFoldContent extends Component {
   static propTypes = {
+    /**
+     * The child nodes.
+     */
     children: PropTypes.node,
   };
 
   render() {
     const { children } = this.props;
 
-    return <span className="bx--tile-content__below-the-fold">{children}</span>;
+    return (
+      <span className={`${prefix}--tile-content__below-the-fold`}>
+        {children}
+      </span>
+    );
   }
 }

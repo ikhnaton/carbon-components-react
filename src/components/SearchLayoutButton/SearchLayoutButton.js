@@ -1,7 +1,17 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { iconList, iconGrid } from 'carbon-icons';
-import Icon from '../Icon';
+import { settings } from 'carbon-components';
+import ListBulleted16 from '@carbon/icons-react/lib/list--bulleted/16';
+import Grid16 from '@carbon/icons-react/lib/grid/16';
+
+const { prefix } = settings;
 
 /**
  * The layout button for `<Search>`.
@@ -68,29 +78,32 @@ class SearchLayoutButton extends Component {
 
   render() {
     const { labelText, iconDescriptionList, iconDescriptionGrid } = this.props;
+    const SearchLayoutButtonIcon = () => {
+      if (this.state.format === 'list') {
+        return (
+          <ListBulleted16
+            className={`${prefix}--search-view`}
+            aria-label={iconDescriptionList}
+          />
+        );
+      }
+      return (
+        <Grid16
+          className={`${prefix}--search-view`}
+          aria-label={iconDescriptionGrid}
+        />
+      );
+    };
     return (
       <button
-        className="bx--search-button"
+        className={`${prefix}--search-button`}
         type="button"
         onClick={this.toggleLayout}
-        aria-label={labelText}>
-        {this.state.format === 'list' ? (
-          <div className="bx--search__toggle-layout__container">
-            <Icon
-              icon={iconList}
-              description={iconDescriptionList}
-              className="bx--search-view"
-            />
-          </div>
-        ) : (
-          <div className="bx--search__toggle-layout__container">
-            <Icon
-              icon={iconGrid}
-              description={iconDescriptionGrid}
-              className="bx--search-view"
-            />
-          </div>
-        )}
+        aria-label={labelText}
+        title={labelText}>
+        <div className={`${prefix}--search__toggle-layout__container`}>
+          <SearchLayoutButtonIcon />
+        </div>
       </button>
     );
   }

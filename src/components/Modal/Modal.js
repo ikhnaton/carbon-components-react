@@ -1,38 +1,129 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import classNames from 'classnames';
-import { iconClose } from 'carbon-icons';
-import Icon from '../Icon';
 import Button from '../Button';
+import { settings } from 'carbon-components';
+import Close20 from '@carbon/icons-react/lib/close/20';
+import FocusTrap from 'focus-trap-react';
 
-const matchesFuncName =
-  typeof Element !== 'undefined' &&
-  ['matches', 'webkitMatchesSelector', 'msMatchesSelector'].filter(
-    name => typeof Element.prototype[name] === 'function'
-  )[0];
+const { prefix } = settings;
 
 export default class Modal extends Component {
   static propTypes = {
+    /**
+     * Provide the contents of your Modal
+     */
     children: PropTypes.node,
+
+    /**
+     * Specify an optional className to be applied to the modal root node
+     */
     className: PropTypes.string,
+
+    /**
+     * Specify whether the modal should be button-less
+     */
     passiveModal: PropTypes.bool,
+
+    /**
+     * Specify a handler for closing modal.
+     * The handler should care of closing modal, e.g. changing `open` prop.
+     */
     onRequestClose: PropTypes.func,
+
+    /**
+     * Specify the DOM element ID of the top-level node.
+     */
     id: PropTypes.string,
-    modalHeading: PropTypes.string,
-    modalLabel: PropTypes.string,
+
+    /**
+     * Specify the content of the modal header title.
+     */
+    modalHeading: PropTypes.node,
+
+    /**
+     * Specify the content of the modal header label.
+     */
+    modalLabel: PropTypes.node,
+
+    /**
+     * Specify a label to be read by screen readers on the modal root node
+     */
     modalAriaLabel: PropTypes.string,
+
+    /**
+     * Specify the text for the secondary button
+     */
     secondaryButtonText: PropTypes.string,
+
+    /**
+     * Specify the text for the primary button
+     */
     primaryButtonText: PropTypes.string,
+
+    /**
+     * Specify whether the Modal is currently open
+     */
     open: PropTypes.bool,
+
+    /**
+     * Specify a handler for "submitting" modal.
+     * The handler should care of closing modal, e.g. changing `open` prop, if necessary.
+     */
     onRequestSubmit: PropTypes.func,
+
     onKeyDown: PropTypes.func,
+
+    /**
+     * Provide a description for "close" icon that can be read by screen readers
+     */
     iconDescription: PropTypes.string,
+
+    /**
+     * Specify whether the Button should be disabled, or not
+     */
     primaryButtonDisabled: PropTypes.bool,
+
+    /**
+     * Specify a handler for the secondary button.
+     * Useful if separate handler from `onRequestClose` is desirable
+     */
     onSecondarySubmit: PropTypes.func,
+
+    /**
+     * Specify whether the Modal is for dangerous actions
+     */
     danger: PropTypes.bool,
+
+    /**
+     * Specify if Enter key should be used as "submit" action
+     */
     shouldSubmitOnEnter: PropTypes.bool,
+
+    /**
+     * Specify CSS selectors that match DOM elements working as floating menus.
+     * Focusing on those elements won't trigger "focus-wrap" behavior
+     */
     selectorsFloatingMenus: PropTypes.arrayOf(PropTypes.string),
+
+    /**
+     * Specify a CSS selector that matches the DOM element that should
+     * be focused when the Modal opens
+     */
     selectorPrimaryFocus: PropTypes.string,
+
+    /**
+     * Specify whether the modal should use 3rd party `focus-trap-react` for the focus-wrap feature.
+     * NOTE: by default this is true.
+     */
+    focusTrap: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -44,12 +135,8 @@ export default class Modal extends Component {
     iconDescription: 'close the modal',
     modalHeading: '',
     modalLabel: '',
-    selectorsFloatingMenus: [
-      '.bx--overflow-menu-options',
-      '.bx--tooltip',
-      '.flatpickr-calendar',
-    ],
     selectorPrimaryFocus: '[data-modal-primary-focus]',
+    focusTrap: true,
   };
 
   button = React.createRef();
@@ -57,25 +144,15 @@ export default class Modal extends Component {
   innerModal = React.createRef();
 
   elementOrParentIsFloatingMenu = target => {
+    const {
+      selectorsFloatingMenus = [
+        `.${prefix}--overflow-menu-options`,
+        `.${prefix}--tooltip`,
+        '.flatpickr-calendar',
+      ],
+    } = this.props;
     if (target && typeof target.closest === 'function') {
-      return this.props.selectorsFloatingMenus.some(selector =>
-        target.closest(selector)
-      );
-    } else {
-      // Alternative if closest does not exist.
-      while (target) {
-        if (typeof target[matchesFuncName] === 'function') {
-          if (
-            this.props.selectorsFloatingMenus.some(selector =>
-              target[matchesFuncName](selector)
-            )
-          ) {
-            return true;
-          }
-        }
-        target = target.parentNode;
-      }
-      return false;
+      return selectorsFloatingMenus.some(selector => target.closest(selector));
     }
   };
 
@@ -95,6 +172,12 @@ export default class Modal extends Component {
       !this.elementOrParentIsFloatingMenu(evt.target)
     ) {
       this.props.onRequestClose(evt);
+    }
+  };
+
+  focusModal = () => {
+    if (this.outerModal.current) {
+      this.outerModal.current.focus();
     }
   };
 
@@ -119,32 +202,43 @@ export default class Modal extends Component {
     }
   }
 
-  focusModal = () => {
-    if (this.outerModal.current) {
-      this.outerModal.current.focus();
+  initialFocus = focusContainerElement => {
+    const primaryFocusElement = focusContainerElement
+      ? focusContainerElement.querySelector(this.props.selectorPrimaryFocus)
+      : null;
+    if (primaryFocusElement) {
+      return primaryFocusElement;
+    }
+    return this.button && this.button.current;
+  };
+
+  focusButton = focusContainerElement => {
+    const target = this.initialFocus(focusContainerElement);
+    if (target) {
+      target.focus();
     }
   };
 
-  focusButton = evt => {
-    const primaryFocusElement = evt.currentTarget.querySelector(
-      this.props.selectorPrimaryFocus
-    );
-    if (primaryFocusElement) {
-      primaryFocusElement.focus();
+  componentDidMount() {
+    if (!this.props.open) {
       return;
     }
-    if (this.button) {
-      this.button.current.focus();
+    if (!this.props.focusTrap) {
+      this.focusButton(this.innerModal.current);
     }
-  };
+  }
 
   handleTransitionEnd = evt => {
     if (
+      evt.target === evt.currentTarget && // Not to handle `onTransitionEnd` on child DOM nodes
+      this.outerModal.current &&
       this.outerModal.current.offsetWidth &&
       this.outerModal.current.offsetHeight &&
       this.beingOpen
     ) {
-      this.focusButton(evt);
+      if (!this.props.focusTrap) {
+        this.focusButton(evt.currentTarget);
+      }
       this.beingOpen = false;
     }
   };
@@ -167,6 +261,7 @@ export default class Modal extends Component {
       selectorPrimaryFocus, // eslint-disable-line
       selectorsFloatingMenus, // eslint-disable-line
       shouldSubmitOnEnter, // eslint-disable-line
+      focusTrap,
       ...other
     } = this.props;
 
@@ -175,23 +270,24 @@ export default class Modal extends Component {
       : onRequestClose;
 
     const modalClasses = classNames({
-      'bx--modal': true,
-      'bx--modal-tall': !passiveModal,
+      [`${prefix}--modal`]: true,
+      [`${prefix}--modal-tall`]: !passiveModal,
       'is-visible': open,
-      'bx--modal--danger': this.props.danger,
+      [`${prefix}--modal--danger`]: this.props.danger,
       [this.props.className]: this.props.className,
     });
 
     const modalButton = (
       <button
-        className="bx--modal-close"
+        className={`${prefix}--modal-close`}
         type="button"
         onClick={onRequestClose}
+        title={iconDescription}
+        aria-label={iconDescription}
         ref={this.button}>
-        <Icon
-          icon={iconClose}
-          className="bx--modal-close__icon"
-          description={iconDescription}
+        <Close20
+          aria-label={iconDescription}
+          className={`${prefix}--modal-close__icon`}
         />
       </button>
     );
@@ -200,39 +296,36 @@ export default class Modal extends Component {
       <div
         ref={this.innerModal}
         role="dialog"
-        className="bx--modal-container"
-        aria-label={modalAriaLabel}>
-        <div className="bx--modal-header">
+        className={`${prefix}--modal-container`}
+        aria-label={modalAriaLabel}
+        aria-modal="true">
+        <div className={`${prefix}--modal-header`}>
           {passiveModal && modalButton}
           {modalLabel && (
-            <h4 className="bx--modal-header__label">{modalLabel}</h4>
+            <h2 className={`${prefix}--modal-header__label`}>{modalLabel}</h2>
           )}
-          <h2 className="bx--modal-header__heading">{modalHeading}</h2>
+          <h3 className={`${prefix}--modal-header__heading`}>{modalHeading}</h3>
           {!passiveModal && modalButton}
         </div>
-        <div className="bx--modal-content">{this.props.children}</div>
+        <div className={`${prefix}--modal-content`}>{this.props.children}</div>
         {!passiveModal && (
-          <div className="bx--modal-footer">
-            <div className="bx--modal__buttons-container">
-              <Button
-                kind={danger ? 'tertiary' : 'secondary'}
-                onClick={onSecondaryButtonClick}>
-                {secondaryButtonText}
-              </Button>
-              <Button
-                kind={danger ? 'danger--primary' : 'primary'}
-                disabled={primaryButtonDisabled}
-                onClick={onRequestSubmit}
-                inputref={this.button}>
-                {primaryButtonText}
-              </Button>
-            </div>
+          <div className={`${prefix}--modal-footer`}>
+            <Button kind="secondary" onClick={onSecondaryButtonClick}>
+              {secondaryButtonText}
+            </Button>
+            <Button
+              kind={danger ? 'danger' : 'primary'}
+              disabled={primaryButtonDisabled}
+              onClick={onRequestSubmit}
+              inputref={this.button}>
+              {primaryButtonText}
+            </Button>
           </div>
         )}
       </div>
     );
 
-    return (
+    const modal = (
       <div
         {...other}
         onKeyDown={this.handleKeyDown}
@@ -245,6 +338,17 @@ export default class Modal extends Component {
         ref={this.outerModal}>
         {modalBody}
       </div>
+    );
+
+    return !focusTrap ? (
+      modal
+    ) : (
+      // `<FocusTrap>` has `active: true` in its `defaultProps`
+      <FocusTrap
+        active={!!open}
+        focusTrapOptions={{ initialFocus: this.initialFocus }}>
+        {modal}
+      </FocusTrap>
     );
   }
 }

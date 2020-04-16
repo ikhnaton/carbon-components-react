@@ -1,21 +1,22 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import React from 'react';
 import { iconAdd, iconAddSolid, iconAddOutline } from 'carbon-icons';
-import iconsList from 'carbon-icons';
 import { storiesOf } from '@storybook/react';
-import { withInfo } from '@storybook/addon-info';
+
 import { withKnobs, select, text } from '@storybook/addon-knobs';
-import Icon, { setIconsList } from '../Icon';
+import Icon from '../Icon';
 import IconSkeleton from '../Icon/Icon.Skeleton';
 
-setIconsList(iconsList);
-
 const icons = {
-  iconAdd: 'Add (iconAdd from `carbon-icons`)',
-  iconAddSolid: 'Add with filled circle (iconAddSolid from `carbon-icons`)',
-  iconAddOutline: 'Add with circle (iconAddOutline from `carbon-icons`)',
-  'icon--add': 'Legacy add (icon--add)',
-  'add--solid': 'Legacy add with filled circle (add--solid)',
-  'add--outline': 'Legacy add with circle (add--outline)',
+  'Add (iconAdd from `carbon-icons`)': 'iconAdd',
+  'Add with filled circle (iconAddSolid from `carbon-icons`)': 'iconAddSolid',
+  'Add with circle (iconAddOutline from `carbon-icons`)': 'iconAddOutline',
 };
 
 const iconMap = {
@@ -42,9 +43,10 @@ const props = () => {
     width: text('The SVG `width` attribute (width)', ''),
     height: text('The SVG `height` attribute (height)', ''),
     description: text(
-      'The content in <title> in SVG (description)',
+      'The a11y text (description)',
       'This is a description of the icon and what it does in context'
     ),
+    iconTitle: text('The content in <title> in SVG (iconTitle)', ''),
     className: 'extra-class',
   };
 };
@@ -67,26 +69,32 @@ storiesOf('Icon', module)
   .addDecorator(withKnobs)
   .add(
     'Default',
-    withInfo({
-      text: `
-        Icons are used in the product to present common actions and commands. Modify the fill property to change the color of the icon. The name property defines which icon to display. For accessibility, provide a context-rich description with the description prop. For a full list of icon names, see carbondesignsystem.com/style/iconography/library
-      `,
-    })(() => (
+    () => (
       <div>
         <Icon {...props()} />
       </div>
-    ))
+    ),
+    {
+      info: {
+        text: `
+            Icons are used in the product to present common actions and commands. Modify the fill property to change the color of the icon. The name property defines which icon to display. For accessibility, provide a context-rich description with the description prop. For a full list of icon names, see carbondesignsystem.com/style/iconography/library
+          `,
+      },
+    }
   )
   .add(
     'Skeleton',
-    withInfo({
-      text: `
-        Icons are used in the product to present common actions and commands. Modify the fill property to change the color of the icon. The name property defines which icon to display. For accessibility, provide a context-rich description with the description prop. For a full list of icon names, see carbondesignsystem.com/style/iconography/library
-      `,
-    })(() => (
+    () => (
       <div>
         <IconSkeleton {...propsSkeleton} />
         <IconSkeleton {...propsSkeleton2} />
       </div>
-    ))
+    ),
+    {
+      info: {
+        text: `
+            Icons are used in the product to present common actions and commands. Modify the fill property to change the color of the icon. The name property defines which icon to display. For accessibility, provide a context-rich description with the description prop. For a full list of icon names, see carbondesignsystem.com/style/iconography/library
+          `,
+      },
+    }
   );

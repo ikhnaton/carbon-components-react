@@ -12,29 +12,19 @@ exports[`ModalWrapper should render 1`] = `
   onKeyDown={[Function]}
   primaryButtonText="Save"
   secondaryButtonText="Cancel"
+  selectorPrimaryFocus="[data-modal-primary-focus]"
   shouldCloseAfterSubmit={true}
+  triggerButtonIconDescription="Provide icon description if icon is used"
   triggerButtonKind="primary"
 >
   <div
     onKeyDown={[Function]}
     role="presentation"
   >
-    <Button
+    <ForwardRef(Button)
       className="btn-trigger"
       disabled={false}
       iconDescription="Provide icon description if icon is used"
-      inputref={
-        Object {
-          "current": <button
-            class="btn-trigger bx--btn bx--btn--primary"
-            inputref="[object Object]"
-            tabindex="0"
-            type="button"
-          >
-            Test Modal
-          </button>,
-        }
-      }
       kind="primary"
       onClick={[Function]}
       small={false}
@@ -44,26 +34,15 @@ exports[`ModalWrapper should render 1`] = `
       <button
         className="btn-trigger bx--btn bx--btn--primary"
         disabled={false}
-        inputref={
-          Object {
-            "current": <button
-              class="btn-trigger bx--btn bx--btn--primary"
-              inputref="[object Object]"
-              tabindex="0"
-              type="button"
-            >
-              Test Modal
-            </button>,
-          }
-        }
         onClick={[Function]}
         tabIndex={0}
         type="button"
       >
         Test Modal
       </button>
-    </Button>
+    </ForwardRef(Button)>
     <Modal
+      focusTrap={true}
       iconDescription="close the modal"
       id="modal"
       modalHeading="Transactional Modal"
@@ -77,112 +56,96 @@ exports[`ModalWrapper should render 1`] = `
       primaryButtonText="Save"
       secondaryButtonText="Cancel"
       selectorPrimaryFocus="[data-modal-primary-focus]"
-      selectorsFloatingMenus={
-        Array [
-          ".bx--overflow-menu-options",
-          ".bx--tooltip",
-          ".flatpickr-calendar",
-        ]
-      }
     >
-      <div
-        className="bx--modal bx--modal-tall"
-        id="modal"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onKeyDown={[Function]}
-        role="presentation"
-        tabIndex={-1}
+      <FocusTrap
+        _createFocusTrap={[Function]}
+        active={false}
+        focusTrapOptions={
+          Object {
+            "initialFocus": [Function],
+          }
+        }
+        paused={false}
       >
         <div
-          className="bx--modal-container"
-          role="dialog"
+          className="bx--modal bx--modal-tall"
+          id="modal"
+          onBlur={[Function]}
+          onClick={[Function]}
+          onKeyDown={[Function]}
+          role="presentation"
+          tabIndex={-1}
         >
           <div
-            className="bx--modal-header"
-          >
-            <h4
-              className="bx--modal-header__label"
-            >
-              Test Modal Label
-            </h4>
-            <h2
-              className="bx--modal-header__heading"
-            >
-              Transactional Modal
-            </h2>
-            <button
-              className="bx--modal-close"
-              onClick={[Function]}
-              type="button"
-            >
-              <Icon
-                className="bx--modal-close__icon"
-                description="close the modal"
-                fillRule="evenodd"
-                icon={
-                  Object {
-                    "height": "10",
-                    "id": "icon--close",
-                    "name": "icon--close",
-                    "styles": "",
-                    "svgData": Object {
-                      "circles": "",
-                      "ellipses": "",
-                      "paths": Array [
-                        Object {
-                          "d": "M6.32 5L10 8.68 8.68 10 5 6.32 1.32 10 0 8.68 3.68 5 0 1.32 1.32 0 5 3.68 8.68 0 10 1.32 6.32 5z",
-                          "fill-rule": "nonzero",
-                        },
-                      ],
-                      "polygons": "",
-                      "polylines": "",
-                      "rects": "",
-                    },
-                    "tags": "icon--close",
-                    "viewBox": "0 0 10 10",
-                    "width": "10",
-                  }
-                }
-                role="img"
-              >
-                <svg
-                  alt="close the modal"
-                  aria-label="close the modal"
-                  className="bx--modal-close__icon"
-                  fillRule="evenodd"
-                  height="10"
-                  role="img"
-                  viewBox="0 0 10 10"
-                  width="10"
-                >
-                  <title>
-                    close the modal
-                  </title>
-                  <path
-                    d="M6.32 5L10 8.68 8.68 10 5 6.32 1.32 10 0 8.68 3.68 5 0 1.32 1.32 0 5 3.68 8.68 0 10 1.32 6.32 5z"
-                    key="key0"
-                  />
-                </svg>
-              </Icon>
-            </button>
-          </div>
-          <div
-            className="bx--modal-content"
-          >
-            <p
-              className="bx--modal-content__text"
-            >
-              Text
-            </p>
-          </div>
-          <div
-            className="bx--modal-footer"
+            aria-modal="true"
+            className="bx--modal-container"
+            role="dialog"
           >
             <div
-              className="bx--modal__buttons-container"
+              className="bx--modal-header"
             >
-              <Button
+              <h2
+                className="bx--modal-header__label"
+              >
+                Test Modal Label
+              </h2>
+              <h3
+                className="bx--modal-header__heading"
+              >
+                Transactional Modal
+              </h3>
+              <button
+                aria-label="close the modal"
+                className="bx--modal-close"
+                onClick={[Function]}
+                title="close the modal"
+                type="button"
+              >
+                <Close20
+                  aria-label="close the modal"
+                  className="bx--modal-close__icon"
+                  height={20}
+                  preserveAspectRatio="xMidYMid meet"
+                  viewBox="0 0 32 32"
+                  width={20}
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <svg
+                    aria-label="close the modal"
+                    className="bx--modal-close__icon"
+                    focusable="false"
+                    height={20}
+                    preserveAspectRatio="xMidYMid meet"
+                    role="img"
+                    style={
+                      Object {
+                        "willChange": "transform",
+                      }
+                    }
+                    viewBox="0 0 32 32"
+                    width={20}
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4l6.6 6.6L8 22.6 9.4 24l6.6-6.6 6.6 6.6 1.4-1.4-6.6-6.6L24 9.4z"
+                    />
+                  </svg>
+                </Close20>
+              </button>
+            </div>
+            <div
+              className="bx--modal-content"
+            >
+              <p
+                className="bx--modal-content__text"
+              >
+                Text
+              </p>
+            </div>
+            <div
+              className="bx--modal-footer"
+            >
+              <ForwardRef(Button)
                 disabled={false}
                 iconDescription="Provide icon description if icon is used"
                 kind="secondary"
@@ -200,19 +163,33 @@ exports[`ModalWrapper should render 1`] = `
                 >
                   Cancel
                 </button>
-              </Button>
-              <Button
+              </ForwardRef(Button)>
+              <ForwardRef(Button)
                 disabled={false}
                 iconDescription="Provide icon description if icon is used"
                 inputref={
                   Object {
                     "current": <button
-                      class="bx--btn bx--btn--primary"
-                      inputref="[object Object]"
-                      tabindex="0"
+                      aria-label="close the modal"
+                      class="bx--modal-close"
+                      title="close the modal"
                       type="button"
                     >
-                      Save
+                      <svg
+                        aria-label="close the modal"
+                        class="bx--modal-close__icon"
+                        focusable="false"
+                        height="20"
+                        preserveAspectRatio="xMidYMid meet"
+                        role="img"
+                        viewBox="0 0 32 32"
+                        width="20"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4l6.6 6.6L8 22.6 9.4 24l6.6-6.6 6.6 6.6 1.4-1.4-6.6-6.6L24 9.4z"
+                        />
+                      </svg>
                     </button>,
                   }
                 }
@@ -228,12 +205,26 @@ exports[`ModalWrapper should render 1`] = `
                   inputref={
                     Object {
                       "current": <button
-                        class="bx--btn bx--btn--primary"
-                        inputref="[object Object]"
-                        tabindex="0"
+                        aria-label="close the modal"
+                        class="bx--modal-close"
+                        title="close the modal"
                         type="button"
                       >
-                        Save
+                        <svg
+                          aria-label="close the modal"
+                          class="bx--modal-close__icon"
+                          focusable="false"
+                          height="20"
+                          preserveAspectRatio="xMidYMid meet"
+                          role="img"
+                          viewBox="0 0 32 32"
+                          width="20"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4l6.6 6.6L8 22.6 9.4 24l6.6-6.6 6.6 6.6 1.4-1.4-6.6-6.6L24 9.4z"
+                          />
+                        </svg>
                       </button>,
                     }
                   }
@@ -243,11 +234,11 @@ exports[`ModalWrapper should render 1`] = `
                 >
                   Save
                 </button>
-              </Button>
+              </ForwardRef(Button)>
             </div>
           </div>
         </div>
-      </div>
+      </FocusTrap>
     </Modal>
   </div>
 </ModalWrapper>

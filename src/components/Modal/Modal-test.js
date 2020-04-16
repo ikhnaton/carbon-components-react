@@ -1,8 +1,18 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import React from 'react';
-import Icon from '../Icon';
+import Close20 from '@carbon/icons-react/lib/close/20';
 import Modal from '../Modal';
 import ModalWrapper from '../ModalWrapper';
 import { shallow, mount } from 'enzyme';
+
+// The modal is the 0th child inside the wrapper on account of focus-trap-react
+const getModal = wrapper => wrapper.childAt(0);
 
 describe('Modal', () => {
   describe('Renders as expected', () => {
@@ -10,25 +20,25 @@ describe('Modal', () => {
     const mounted = mount(<Modal className="extra-class" />);
 
     it('has the expected classes', () => {
-      expect(wrapper.hasClass('bx--modal')).toEqual(true);
+      expect(getModal(wrapper).hasClass('bx--modal')).toEqual(true);
     });
 
     it('should add extra classes that are passed via className', () => {
-      expect(wrapper.hasClass('extra-class')).toEqual(true);
+      expect(getModal(wrapper).hasClass('extra-class')).toEqual(true);
     });
 
     it('should not be a passive modal by default', () => {
-      expect(wrapper.hasClass('bx--modal-tall')).toEqual(true);
+      expect(getModal(wrapper).hasClass('bx--modal-tall')).toEqual(true);
     });
 
     it('should be a passive modal when passiveModal is passed', () => {
       wrapper.setProps({ passiveModal: true });
-      expect(wrapper.hasClass('bx--modal-tall')).toEqual(false);
+      expect(getModal(wrapper).hasClass('bx--modal-tall')).toEqual(false);
     });
 
     it('should set id if one is passed via props', () => {
       const modal = shallow(<Modal id="modal-1" />);
-      expect(modal.props().id).toEqual('modal-1');
+      expect(getModal(modal).props().id).toEqual('modal-1');
     });
 
     it('has the expected default iconDescription', () => {
@@ -41,24 +51,19 @@ describe('Modal', () => {
     });
 
     it('should have iconDescription match Icon component description prop', () => {
-      const matches =
-        mounted.props().iconDescription ===
-        mounted.find(Icon).props().description;
+      const description = mounted.find(Close20).props()['aria-label'];
+      const matches = mounted.props().iconDescription === description;
       expect(matches).toEqual(true);
     });
 
     it('enables primary button by default', () => {
-      const primaryButton = mounted
-        .find('.bx--modal__buttons-container .bx--btn')
-        .at(0);
+      const primaryButton = mounted.find('.bx--btn.bx--btn--primary').at(0);
       expect(primaryButton.prop('disabled')).toEqual(false);
     });
 
     it('disables primary button when diablePrimaryButton prop is passed', () => {
       mounted.setProps({ primaryButtonDisabled: true });
-      const primaryButton = mounted
-        .find('.bx--modal__buttons-container .bx--btn')
-        .at(1);
+      const primaryButton = mounted.find('.bx--btn.bx--btn--primary').at(0);
       expect(primaryButton.props().disabled).toEqual(true);
     });
   });
@@ -80,8 +85,7 @@ describe('Modal', () => {
       const wrapper = shallow(
         <Modal primaryButtonText="Submit" secondaryButtonText="Cancel" />
       );
-      const modalButtons = wrapper.find('.bx--modal__buttons-container').props()
-        .children;
+      const modalButtons = wrapper.find('.bx--modal-footer').props().children;
       expect(modalButtons[0].props.children).toEqual('Cancel');
       expect(modalButtons[1].props.children).toEqual('Submit');
     });
@@ -210,14 +214,13 @@ describe('Danger Modal', () => {
     const wrapper = shallow(<Modal danger />);
 
     it('has the expected classes', () => {
-      expect(wrapper.hasClass('bx--modal--danger')).toEqual(true);
+      expect(getModal(wrapper).hasClass('bx--modal--danger')).toEqual(true);
     });
 
     it('has correct button combination', () => {
-      const modalButtons = wrapper.find('.bx--modal__buttons-container').props()
-        .children;
-      expect(modalButtons[0].props.kind).toEqual('tertiary');
-      expect(modalButtons[1].props.kind).toEqual('danger--primary');
+      const modalButtons = wrapper.find('.bx--modal-footer').props().children;
+      expect(modalButtons[0].props.kind).toEqual('secondary');
+      expect(modalButtons[1].props.kind).toEqual('danger');
     });
   });
 });

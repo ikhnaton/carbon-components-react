@@ -1,6 +1,18 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import cx from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { settings } from 'carbon-components';
+import Button from '../Button';
+import TableActionList from './TableActionList';
+
+const { prefix } = settings;
 
 const translationKeys = {
   'carbon.table.batch.cancel': 'Cancel',
@@ -26,26 +38,30 @@ const TableBatchActions = ({
 }) => {
   const batchActionsClasses = cx(
     {
-      'bx--batch-actions': true,
-      'bx--batch-actions--active': shouldShowBatchActions,
+      [`${prefix}--batch-actions`]: true,
+      [`${prefix}--batch-actions--active`]: shouldShowBatchActions,
     },
     className
   );
 
   return (
     <div {...rest} className={batchActionsClasses}>
-      {children}
-      <div className="bx--batch-summary">
-        <p className="bx--batch-summary__para">
+      <TableActionList>
+        {children}
+        <Button
+          className={`${prefix}--batch-summary__cancel`}
+          onClick={onCancel}>
+          {t('carbon.table.batch.cancel')}
+        </Button>
+      </TableActionList>
+      <div className={`${prefix}--batch-summary`}>
+        <p className={`${prefix}--batch-summary__para`}>
           <span>
             {totalSelected > 1
               ? t('carbon.table.batch.items.selected', { totalSelected })
               : t('carbon.table.batch.item.selected', { totalSelected })}
           </span>
         </p>
-        <button className="bx--batch-summary__cancel" onClick={onCancel}>
-          {t('carbon.table.batch.cancel')}
-        </button>
       </div>
     </div>
   );

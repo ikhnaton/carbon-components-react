@@ -1,8 +1,16 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import isEqual from 'lodash.isequal';
-import TextInput from '../TextInput';
+import { settings } from 'carbon-components';
+
+const { prefix } = settings;
 
 const defaultFormatLabel = (value, label) => {
   return typeof label === 'function' ? label(value) : `${value}${label}`;
@@ -29,6 +37,11 @@ export default class Slider extends PureComponent {
      * The callback to get notified of change in value.
      */
     onChange: PropTypes.func,
+
+    /**
+     * The callback to get notified of value on handle release.
+     */
+    onRelease: PropTypes.func,
 
     /**
      * The value.
@@ -89,7 +102,7 @@ export default class Slider extends PureComponent {
     /**
      * The `name` attribute of the `<input>`.
      */
-    name: PropTypes.bool,
+    name: PropTypes.string,
 
     /**
      * The `type` attribute of the `<input>`.
@@ -121,18 +134,27 @@ export default class Slider extends PureComponent {
 
   state = {
     dragging: false,
+    holding: false,
     value: this.props.value,
     left: 0,
   };
 
-  componentDidMount() {
-    this.updatePosition();
-  }
-
-  UNSAFE_componentWillReceiveProps(nextProps) {
-    if (!isEqual(nextProps, this.props)) {
-      this.updatePosition();
+  static getDerivedStateFromProps({ value, min, max }, state) {
+    const { value: currentValue, prevValue, prevMin, prevMax } = state;
+    if (prevValue === value && prevMin === min && prevMax === max) {
+      return null;
     }
+    const effectiveValue = Math.min(
+      Math.max(prevValue === value ? currentValue : value, min),
+      max
+    );
+    return {
+      value: effectiveValue,
+      left: ((effectiveValue - min) / (max - min)) * 100,
+      prevValue: value,
+      prevMin: min,
+      prevMax: max,
+    };
   }
 
   updatePosition = evt => {
@@ -147,8 +169,9 @@ export default class Slider extends PureComponent {
     if (this.state.dragging) {
       return;
     }
-
     this.setState({ dragging: true });
+
+    this.handleDrag();
 
     requestAnimationFrame(() => {
       this.setState((prevState, props) => {
@@ -186,7 +209,7 @@ export default class Slider extends PureComponent {
     const { value } = prevState;
 
     const range = max - min;
-    const valuePercentage = (value - min) / range * 100;
+    const valuePercentage = ((value - min) / range) * 100;
 
     let left;
     let newValue;
@@ -208,7 +231,7 @@ export default class Slider extends PureComponent {
           const multiplier =
             evt.shiftKey === true ? range / step / stepMuliplier : 1;
           const stepMultiplied = step * multiplier;
-          const stepSize = stepMultiplied / range * 100;
+          const stepSize = (stepMultiplied / range) * 100;
           left = valuePercentage + stepSize * direction;
           newValue = Number(value) + stepMultiplied * direction;
         }
@@ -217,8 +240,8 @@ export default class Slider extends PureComponent {
         const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
         const track = this.track.getBoundingClientRect();
         const ratio = (clientX - track.left) / track.width;
-        const rounded = min + Math.round(range * ratio / step) * step;
-        left = (rounded - min) / range * 100;
+        const rounded = min + Math.round((range * ratio) / step) * step;
+        left = ((rounded - min) / range) * 100;
         newValue = rounded;
       }
     }
@@ -236,6 +259,10 @@ export default class Slider extends PureComponent {
   };
 
   handleMouseStart = () => {
+    this.setState({
+      holding: true,
+    });
+
     this.element.ownerDocument.addEventListener(
       'mousemove',
       this.updatePosition
@@ -244,6 +271,13 @@ export default class Slider extends PureComponent {
   };
 
   handleMouseEnd = () => {
+    this.setState(
+      {
+        holding: false,
+      },
+      this.updatePosition
+    );
+
     this.element.ownerDocument.removeEventListener(
       'mousemove',
       this.updatePosition
@@ -255,6 +289,9 @@ export default class Slider extends PureComponent {
   };
 
   handleTouchStart = () => {
+    this.setState({
+      holding: true,
+    });
     this.element.ownerDocument.addEventListener(
       'touchmove',
       this.updatePosition
@@ -271,6 +308,13 @@ export default class Slider extends PureComponent {
   };
 
   handleTouchEnd = () => {
+    this.setState(
+      {
+        holding: false,
+      },
+      this.updatePosition
+    );
+
     this.element.ownerDocument.removeEventListener(
       'touchmove',
       this.updatePosition
@@ -292,6 +336,16 @@ export default class Slider extends PureComponent {
   handleChange = evt => {
     this.setState({ value: evt.target.value });
     this.updatePosition(evt);
+  };
+
+  handleDrag = () => {
+    if (
+      typeof this.props.onRelease === 'function' &&
+      !this.props.disabled &&
+      !this.state.holding
+    ) {
+      this.props.onRelease({ value: this.state.value });
+    }
   };
 
   render() {
@@ -320,17 +374,28 @@ export default class Slider extends PureComponent {
       ...other
     } = this.props;
 
+    delete other.onRelease;
+
     const { value, left } = this.state;
 
+    const labelClasses = classNames(`${prefix}--label`, {
+      [`${prefix}--label--disabled`]: disabled,
+    });
+
     const sliderClasses = classNames(
-      'bx--slider',
-      { 'bx--slider--disabled': disabled },
+      `${prefix}--slider`,
+      { [`${prefix}--slider--disabled`]: disabled },
       className
     );
 
-    const inputClasses = classNames('bx-slider-text-input', {
-      'bx--text-input--light': light,
-    });
+    const inputClasses = classNames(
+      `${prefix}--text-input`,
+      `${prefix}--slider-text-input`,
+      {
+        [`${prefix}--text-input--light`]: light,
+        [`${prefix}--text-input--invalid`]: this.props.invalid,
+      }
+    );
 
     const filledTrackStyle = {
       transform: `translate(0%, -50%) scaleX(${left / 100})`,
@@ -340,12 +405,12 @@ export default class Slider extends PureComponent {
     };
 
     return (
-      <div className="bx--form-item">
-        <label htmlFor={id} className="bx--label">
+      <div className={`${prefix}--form-item`}>
+        <label htmlFor={id} className={labelClasses}>
           {labelText}
         </label>
-        <div className="bx--slider-container">
-          <span className="bx--slider__range-label">
+        <div className={`${prefix}--slider-container`}>
+          <span className={`${prefix}--slider__range-label`}>
             {formatLabel(min, minLabel)}
           </span>
           <div
@@ -359,17 +424,7 @@ export default class Slider extends PureComponent {
             tabIndex={-1}
             {...other}>
             <div
-              className="bx--slider__track"
-              ref={node => {
-                this.track = node;
-              }}
-            />
-            <div
-              className="bx--slider__filled-track"
-              style={filledTrackStyle}
-            />
-            <div
-              className="bx--slider__thumb"
+              className={`${prefix}--slider__thumb`}
               role="slider"
               id={id}
               tabIndex={0}
@@ -381,7 +436,18 @@ export default class Slider extends PureComponent {
               onTouchStart={this.handleTouchStart}
               onKeyDown={this.updatePosition}
             />
+            <div
+              className={`${prefix}--slider__track`}
+              ref={node => {
+                this.track = node;
+              }}
+            />
+            <div
+              className={`${prefix}--slider__filled-track`}
+              style={filledTrackStyle}
+            />
             <input
+              className={`${prefix}--slider__input`}
               type="hidden"
               name={name}
               value={value}
@@ -392,18 +458,19 @@ export default class Slider extends PureComponent {
               onChange={this.handleChange}
             />
           </div>
-          <span className="bx--slider__range-label">
+          <span className={`${prefix}--slider__range-label`}>
             {formatLabel(max, maxLabel)}
           </span>
           {!hideTextInput && (
-            <TextInput
+            <input
               type={inputType}
-              id="input-for-slider"
+              id={`${id}-input-for-slider`}
               className={inputClasses}
               value={value}
               onChange={this.handleChange}
               labelText=""
               aria-label={ariaLabelInput}
+              disabled={disabled}
             />
           )}
         </div>

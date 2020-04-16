@@ -1,7 +1,17 @@
+/**
+ * Copyright IBM Corp. 2016, 2018
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import classNames from 'classnames';
-import Icon from '../Icon';
+import { settings } from 'carbon-components';
+import Calendar16 from '@carbon/icons-react/lib/calendar/16';
+
+const { prefix } = settings;
 
 export default class DatePickerInput extends Component {
   static propTypes = {
@@ -9,10 +19,17 @@ export default class DatePickerInput extends Component {
      * Specify an id that unique identifies the <input>
      */
     id: PropTypes.string.isRequired,
+
     /**
      * The description of the calendar icon.
      */
     iconDescription: PropTypes.string,
+
+    /**
+     * Provide the text that will be read by a screen reader when visiting this
+     * control
+     */
+    labelText: PropTypes.node.isRequired,
   };
 
   static defaultProps = {
@@ -20,7 +37,6 @@ export default class DatePickerInput extends Component {
     type: 'text',
     disabled: false,
     invalid: false,
-    labelText: '',
     onClick: () => {},
     onChange: () => {},
   };
@@ -29,6 +45,7 @@ export default class DatePickerInput extends Component {
     const {
       id,
       labelText,
+      disabled,
       invalid,
       invalidText,
       hideLabel,
@@ -46,12 +63,12 @@ export default class DatePickerInput extends Component {
     const datePickerInputProps = {
       id,
       onChange: evt => {
-        if (!other.disabled) {
+        if (!disabled) {
           onChange(evt);
         }
       },
       onClick: evt => {
-        if (!other.disabled) {
+        if (!disabled) {
           onClick(evt);
         }
       },
@@ -60,21 +77,25 @@ export default class DatePickerInput extends Component {
       pattern,
     };
 
-    const labelClasses = classNames('bx--label', {
-      'bx--visually-hidden': hideLabel,
+    const labelClasses = classNames(`${prefix}--label`, {
+      [`${prefix}--visually-hidden`]: hideLabel,
+      [`${prefix}--label--disabled`]: disabled,
     });
 
-    const datePickerIcon =
-      datePickerType === 'single' ? (
-        <Icon
-          name="calendar"
-          className="bx--date-picker__icon"
-          description={iconDescription}
+    const datePickerIcon = (() => {
+      if (datePickerType === 'simple') {
+        return;
+      }
+      return (
+        <Calendar16
+          className={`${prefix}--date-picker__icon`}
+          aria-label={iconDescription}
           onClick={openCalendar}
-        />
-      ) : (
-        ''
+          role="img">
+          {iconDescription && <title>{iconDescription}</title>}
+        </Calendar16>
       );
+    })();
 
     const label = labelText ? (
       <label htmlFor={id} className={labelClasses}>
@@ -83,22 +104,23 @@ export default class DatePickerInput extends Component {
     ) : null;
 
     const error = invalid ? (
-      <div className="bx--form-requirement">{invalidText}</div>
+      <div className={`${prefix}--form-requirement`}>{invalidText}</div>
     ) : null;
 
-    const containerClasses = classNames('bx--date-picker-container', {
-      'bx--date-picker--nolabel': !label,
+    const containerClasses = classNames(`${prefix}--date-picker-container`, {
+      [`${prefix}--date-picker--nolabel`]: !label,
     });
 
     const input = invalid ? (
       <input
         {...other}
         {...datePickerInputProps}
+        disabled={disabled}
         ref={input => {
           this.input = input;
         }}
         data-invalid
-        className="bx--date-picker__input"
+        className={`${prefix}--date-picker__input`}
       />
     ) : (
       <input
@@ -107,15 +129,18 @@ export default class DatePickerInput extends Component {
         }}
         {...other}
         {...datePickerInputProps}
-        className="bx--date-picker__input"
+        disabled={disabled}
+        className={`${prefix}--date-picker__input`}
       />
     );
 
     return (
       <div className={containerClasses}>
-        {datePickerIcon}
         {label}
-        {input}
+        <div className={`${prefix}--date-picker-input__wrapper`}>
+          {input}
+          {datePickerIcon}
+        </div>
         {error}
       </div>
     );
